@@ -1,8 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Container, Typography, Paper, Box, TextField, Button, Autocomplete, CircularProgress } from "@mui/material";
-import { TreeVisualization } from "@/components/TreeVisualization";
+import { useState, useEffect } from 'react';
+import {
+  Container,
+  Typography,
+  Paper,
+  Box,
+  TextField,
+  Button,
+  Autocomplete,
+  CircularProgress,
+} from '@mui/material';
+import { TreeVisualization } from '@/components/TreeVisualization';
 
 export interface VizNode {
   id: string;
@@ -13,14 +22,14 @@ export interface VizNode {
 }
 
 export default function Home() {
-  const [prefix, setPrefix] = useState("");
+  const [prefix, setPrefix] = useState('');
   const [options, setOptions] = useState<string[]>([]);
   const [loadingAutocomplete, setLoadingAutocomplete] = useState(false);
 
   const [trieData, setTrieData] = useState<VizNode | null>(null);
   const [loadingTrie, setLoadingTrie] = useState(true);
 
-  const [newWord, setNewWord] = useState("");
+  const [newWord, setNewWord] = useState('');
   const [addingWord, setAddingWord] = useState(false);
 
   useEffect(() => {
@@ -36,12 +45,11 @@ export default function Home() {
           const data = await res.json();
           setOptions(data);
         } catch (error) {
-          console.error("Failed to fetch autocomplete", error);
+          console.error('Failed to fetch autocomplete', error);
         } finally {
           setLoadingAutocomplete(false);
         }
       };
-      // Debounce slightly in a real app, but ok here
       const timeoutId = setTimeout(fetchAutocomplete, 300);
       return () => clearTimeout(timeoutId);
     } else {
@@ -56,7 +64,7 @@ export default function Home() {
       const data = await res.json();
       setTrieData(data);
     } catch (error) {
-      console.error("Failed to fetch trie", error);
+      console.error('Failed to fetch trie', error);
     } finally {
       setLoadingTrie(false);
     }
@@ -66,31 +74,37 @@ export default function Home() {
     if (!newWord.trim()) return;
     setAddingWord(true);
     try {
-      await fetch("/api/trie", {
-        method: "POST",
+      await fetch('/api/trie', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ word: newWord }),
       });
-      setNewWord("");
-      fetchTrie(prefix); // Refresh trie after adding
+      setNewWord('');
+      fetchTrie(prefix);
     } catch (error) {
-      console.error("Failed to add word", error);
+      console.error('Failed to add word', error);
     } finally {
       setAddingWord(false);
     }
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom align="center">
-        Строковый словарь (Префиксное дерево)
+    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
+      <Typography
+        variant="h4"
+        sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
+        gutterBottom
+        align="center"
+      >
+        Строковый словарь
       </Typography>
-      
-      <Box display="flex" gap={2} my={4}>
+
+      {/* Делаем flex-контейнер вертикальным на мобильных (xs) и горизонтальным на планшетах (md) */}
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={2} my={{ xs: 2, sm: 4 }}>
         <Paper sx={{ p: 3, flex: 1 }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Автодополнение по префиксу
           </Typography>
           <Autocomplete
@@ -119,12 +133,11 @@ export default function Home() {
             )}
           />
         </Paper>
-
         <Paper sx={{ p: 3, flex: 1 }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Добавить слово
           </Typography>
-          <Box display="flex" gap={1}>
+          <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={1}>
             <TextField
               label="Новое слово"
               variant="outlined"
@@ -133,13 +146,14 @@ export default function Home() {
               value={newWord}
               onChange={(e) => setNewWord(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddWord();
+                if (e.key === 'Enter') handleAddWord();
               }}
             />
             <Button
               variant="contained"
               onClick={handleAddWord}
               disabled={!newWord.trim() || addingWord}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Добавить
             </Button>
@@ -147,17 +161,29 @@ export default function Home() {
         </Paper>
       </Box>
 
-      <Paper sx={{ p: 3, minHeight: 400, overflowX: "auto" }}>
-        <Typography variant="h6" gutterBottom>
+      {/* Обертка для корректного горизонтального скролла без обрезки */}
+      <Paper sx={{ p: { xs: 1, sm: 3 }, minHeight: 400, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="h6" gutterBottom sx={{ pl: 1 }}>
           Визуализация дерева
         </Typography>
+
         {loadingTrie && !trieData ? (
-          <Box display="flex" justifyContent="center" mt={4}>
+          <Box display="flex" justifyContent="center" alignItems="center" flex={1}>
             <CircularProgress />
           </Box>
         ) : (
-          <Box sx={{ overflowX: "auto" }}>
-            {trieData ? <TreeVisualization data={trieData} /> : <Typography>Пусто</Typography>}
+          <Box
+            sx={{
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              width: '100%',
+              py: 2,
+            }}
+          >
+            {/* max-content позволяет внутреннему контейнеру растягиваться в ширину, margin: 0 auto центрирует его, если он меньше родителя */}
+            <Box sx={{ minWidth: '100%', width: 'max-content', margin: '0 auto' }}>
+              {trieData ? <TreeVisualization data={trieData} /> : <Typography>Пусто</Typography>}
+            </Box>
           </Box>
         )}
       </Paper>
