@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const prefix = searchParams.get("prefix") || "";
 
   const trie = getTrie();
+  // Get visualization structure of the trie, highlighting paths that match the prefix
   const visualization = trie.visualize(prefix);
 
   return NextResponse.json(visualization);
@@ -14,9 +15,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { word } = await request.json();
-    if (!word || typeof word !== "string" || word.trim() === "") {
+    if (typeof word !== "string" || word.trim() === "") {
       return NextResponse.json(
-        { error: "Некорректное слово" },
+        { error: "Invalid word" },
         { status: 400 }
       );
     }
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, word });
   } catch {
     return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
