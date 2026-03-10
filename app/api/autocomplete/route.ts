@@ -1,0 +1,16 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getTrie } from "@/lib/trie";
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const prefix = searchParams.get("prefix") || "";
+
+  if (!prefix) {
+    return NextResponse.json([]);
+  }
+
+  const trie = getTrie();
+  const autocompleteResults = trie.search(prefix.toLowerCase());
+
+  return NextResponse.json(autocompleteResults);
+}
